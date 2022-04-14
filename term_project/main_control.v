@@ -21,7 +21,7 @@ always @(*) begin
     else
         assign MemtoReg = 0;
     // memory write check
-    if (Opcode == 7'b0100011 || Opcode == 7'b1100111) 
+    if (Opcode == 7'b0100011) 
         assign MemWrite = 1;
     else 
         assign MemWrite = 0;
@@ -31,7 +31,7 @@ always @(*) begin
     else 
         assign ALUSrc = 0;
     // register write check
-    if (Opcode == 7'b0110011 || Opcode == 7'b0000011 || Opcode == 7'b0010011 || Opcode == 7'b1100111 || Opcode == 7'b1101111)
+    if (Opcode == 7'b0110011 || Opcode == 7'b0000011 || Opcode == 7'b0010011)
         assign RegWrite = 1;
     else 
         assign RegWrite = 0;
