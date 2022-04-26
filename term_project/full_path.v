@@ -53,15 +53,22 @@ wire [63:0] data_mem_mux_out;
 
 //pc startup
 initial begin
-    assign pc_in = 32'h0;
-    assign x5 = 64'b0;
-    assign x6 = 64'b0;
-    assign x7 = 64'b0;
+    pc_in = 32'd0;
+    //x5 = 64'b0;
+    //x6 = 64'b0;
+    //x7 = 64'b0;
 end
 
 //always @(posedge clk) begin
   //  pc_in = pc_next;
 //end
+
+always @(posedge clk) begin
+    if (branch_mux_out[31:0])
+        pc_in = branch_mux_out[31:0];
+    else 
+        pc_in = pc_in + 4;
+end
 
 pc pc_inst(pc_in, pc_out, rst, clk);
 
@@ -70,6 +77,10 @@ pc_adder pc_adder_inst(pc_adder_sum, pc_in);
 
 //instruction memory
 inst_mem inst_mem_inst(pc_out, inst);
+
+always @(inst) begin
+    $display("instruction = %h", inst);
+end
 
 //main control
 main_control main_control_inst(inst[6:0], Branch, MemRead, MemtoReg, ALUOp, MemWrite, ALUSrc, RegWrite);
@@ -98,10 +109,6 @@ alu alu_inst(reg_read_data_1, alu_mux_out, operation, zero, alu_result);
 //branch mux
 branch_mux branch_mux_inst(branch_mux_out, pc_adder_sum, branch_adder_sum, branch_and);
 
-always @(posedge clk) begin
-    assign pc_in = branch_mux_out[31:0];
-end
-
 //data memory
 data_mem data_mem_inst(clk, alu_result, reg_read_data_2, MemWrite, MemRead, read_data);
 
@@ -109,19 +116,19 @@ data_mem data_mem_inst(clk, alu_result, reg_read_data_2, MemWrite, MemRead, read
 two_to_one_mux two_to_one_mux_data_mem_inst(data_mem_mux_out, read_data, alu_result, MemtoReg);
 
 //follow change in registers
-always @(*) begin
+always @(negedge clk) begin
     if (inst[11:7] == 5'd5 && RegWrite)
-        assign x5 = data_mem_mux_out;
-    if (inst[19:15] == 5'd5 && MemWrite)
-        assign x5 = reg_read_data_2;
-    if (inst[11:7] == 5'd6 && RegWrite)
-        assign x6 = data_mem_mux_out;
-    if (inst[19:15] == 5'd6 && MemWrite)
-        assign x6 = reg_read_data_2;
-    if (inst[11:7] == 5'd7 && RegWrite)
-        assign x7 = data_mem_mux_out;
-    if (inst[19:15] == 5'd7 && MemWrite)
-        assign x7 = reg_read_data_2;
+        x5 = data_mem_mux_out;
+    else if (alu_result == 5'd5 && MemWrite)
+        x5 = reg_read_data_2;
+    else if (inst[11:7] == 5'd6 && RegWrite)
+        x6 = data_mem_mux_out;
+    else if (alu_result == 5'd6 && MemWrite)
+        x6 = reg_read_data_2;
+    else if (inst[11:7] == 5'd7 && RegWrite)
+        x7 = data_mem_mux_out;
+    else if (alu_result == 5'd7 && MemWrite)
+        x7 = reg_read_data_2;
 end
 
 endmodule

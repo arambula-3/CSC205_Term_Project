@@ -12,14 +12,13 @@ full_path full_path_inst(clk, rst, x5, x6, x7, pc);
 initial $monitor($time, " x5 = %d, x6 = %d, x7 = %d, pc = %h", x5, x6, x7, pc);
 initial $vcdpluson;
 
-initial clk = 1'b1;
+initial clk = 1'b0;
 always #5 clk = ~clk;
 
 initial begin
-    rst = 1'b1;
-    #10 rst = 1'b0;
+    rst = 1'b0;
     //#5 rst = 1'b0;
-    #20 $finish;
+    #100 $finish;
 end
 
 endmodule;

@@ -15,7 +15,11 @@ end
 
 always @ (posedge clk ) begin
   if(reg_write)
-    reg_array[reg_write_dest] = reg_write_data;
+    begin
+      reg_array[reg_write_dest] = reg_write_data;
+    end
+
+    $display("x5 = %h, x6 = %h, x7 = %h", reg_array[5], reg_array[6], reg_array[7]);
 end
 
 
