@@ -13,14 +13,13 @@
 `include "reg_file.v"
 `include "branch_mux.v"
 
-module full_path(clk, rst, x5, x6, x7, pc_in);
+module full_path(clk, rst, x5, x6, x7);
 input clk, rst;
 output reg [63:0] x5, x6, x7;
 
 //pc instantiation
-output reg [31:0] pc_in;
+reg [31:0] pc_in;
 wire [31:0] pc_out;
-reg [31:0] pc_next;
 //pc adder instantiation
 wire [31:0] pc_adder_sum;
 //instruction memory instantiation
@@ -54,20 +53,6 @@ wire [63:0] data_mem_mux_out;
 //pc startup
 initial begin
     pc_in = 32'd0;
-    //x5 = 64'b0;
-    //x6 = 64'b0;
-    //x7 = 64'b0;
-end
-
-//always @(posedge clk) begin
-  //  pc_in = pc_next;
-//end
-
-always @(posedge clk) begin
-    if (branch_mux_out[31:0])
-        pc_in = branch_mux_out[31:0];
-    else 
-        pc_in = pc_in + 4;
 end
 
 pc pc_inst(pc_in, pc_out, rst, clk);
@@ -109,6 +94,14 @@ alu alu_inst(reg_read_data_1, alu_mux_out, operation, zero, alu_result);
 //branch mux
 branch_mux branch_mux_inst(branch_mux_out, pc_adder_sum, branch_adder_sum, branch_and);
 
+always @(posedge clk) begin
+    if (branch_mux_out[31:0])
+        pc_in = branch_mux_out[31:0];
+    else 
+        pc_in = pc_in + 4;
+    $display("pc = %h", pc_in);
+end
+
 //data memory
 data_mem data_mem_inst(clk, alu_result, reg_read_data_2, MemWrite, MemRead, read_data);
 
@@ -119,16 +112,10 @@ two_to_one_mux two_to_one_mux_data_mem_inst(data_mem_mux_out, read_data, alu_res
 always @(negedge clk) begin
     if (inst[11:7] == 5'd5 && RegWrite)
         x5 = data_mem_mux_out;
-    else if (alu_result == 5'd5 && MemWrite)
-        x5 = reg_read_data_2;
     else if (inst[11:7] == 5'd6 && RegWrite)
         x6 = data_mem_mux_out;
-    else if (alu_result == 5'd6 && MemWrite)
-        x6 = reg_read_data_2;
     else if (inst[11:7] == 5'd7 && RegWrite)
         x7 = data_mem_mux_out;
-    else if (alu_result == 5'd7 && MemWrite)
-        x7 = reg_read_data_2;
 end
 
 endmodule
